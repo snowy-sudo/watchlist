@@ -1,5 +1,5 @@
 from flask import Flask,render_template
-# app = Flask(__name__)
+app = Flask(__name__)
 # @app.route('/')
 # def hello():
 #     return '<h1>我将畅游!</h1><img src="https://assets.699pic.com/public/img95/photo/40130/5797.gif_wh860.gif">'
@@ -104,11 +104,11 @@ class Movie(db.Model):  # 表名将会是 movie
 
 #=================在主页视图读取数据库记录=============
 from sqlalchemy import select,func
-@app.route('/')
-def index():
-    user = db.session.execute(select(User)).scalar()  #读取用户记录
-    movies = db.session.execute(select(Movie)).scalars().all()  #读取所有电影记录
-    return render_template('index.html',user=user,movies=movies)
+# @app.route('/')
+# def index():
+#     user = db.session.execute(select(User)).scalar()  #读取用户记录
+#     movies = db.session.execute(select(Movie)).scalars().all()  #读取所有电影记录
+#     return render_template('index.html',user=user,movies=movies)
 
 #===============创建自定义命令forge===============
 
@@ -141,4 +141,23 @@ def forge():
         db.session.add(movie)
     db.session.commit()
     click.echo('Done.')
- 
+ #==========错误404处理函数============
+# @app.errorhandler(404)  #传入要处理的错误代码
+# def page_not_found(error):  #接受异常对象作为参数
+#     user = db.session.execute(select(User)).scalar()
+#     return render_template('404.html',user=user),404  #返回模板和状态码
+
+# ======模板上下文处理函数===========
+@app.context_processor
+def inject_user():#函数名可以随意修改
+    user = db.session.execute(select(User)).scalar()
+    return dict(user=user) #需要返回字典，等同于return {'user':user}
+
+@app.errorhandler(404)  #传入要处理的错误代码
+def page_not_found(error):  #接受异常对象作为参数
+    return render_template('404.html'),404  #返回模板和状态码
+
+@app.route('/')
+def index():
+    movies =db.session.execute(select(Movie)).scalars().all()
+    return render_template('index.html',movies=movies)
